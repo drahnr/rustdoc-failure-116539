@@ -57,12 +57,12 @@ pub trait Config: frame_system::Config<AccountId = PrimitivesAccountId> {
 	type Inner;
 }
 
-pub struct MyCfg {}
+pub struct Genesis {}
 
-impl frame_system::Config for MyCfg {
+impl frame_system::Config for Genesis {
 	type AccountId = PrimitivesAccountId;
 }
 
-impl Config for MyCfg {
+impl Config for Genesis {
 	type Inner = <Self as frame_system::Config>::AccountId;
 }
