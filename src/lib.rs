@@ -1,8 +1,7 @@
-use frame_support::pallet_prelude::*;
-trait IdentifyAccount {
+pub trait IdentifyAccount {
     type AccountId;
 }
-trait Verify {
+pub trait Verify {
     type Signer;
 }
 pub struct RealSigner {}
@@ -15,13 +14,26 @@ impl Verify for RealSignature {
 }
 pub type RealAccountId = <<RealSignature as Verify>::Signer as IdentifyAccount>::AccountId;
 
-pub struct Pallet<T>(std::marker::PhantomData<(T)>);
+pub struct Pallet<T>(std::marker::PhantomData<T>);
 
-pub trait Config: frame_system::Config<AccountId = RealAccountId> {
-	type RuntimeEvent: From<frame_system::Event<Self>>
-		+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
+
+pub struct BaseEvent<T: ?Sized> {
+	_x: std::marker::PhantomData<T>,
+}
+
+pub mod inner {
+	pub trait Config {
+		type RuntimeEvent;
+		type AccountId;
+	}
+}
+pub trait IsType<T>: From<T> + Into<T> {}
+
+pub trait Config: inner::Config<AccountId = RealAccountId> {
+	type RuntimeEvent: From<BaseEvent<Self>>
+		+ IsType<<Self as inner::Config>::RuntimeEvent>;
 }
 
 pub struct GenesisConfig<T: Config> {
-	pub shelves: Vec<<T as frame_system::Config>::AccountId>,
+	pub shelves: Vec<<T as inner::Config>::AccountId>,
 }
