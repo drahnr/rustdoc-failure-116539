@@ -1,69 +1,59 @@
-// CRATE A
+#![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::pallet_prelude::*;
 
-pub struct AccountId32;
-
-
-pub trait IdentifyAccount {
-	type AccountId;
-	fn into_account(&self) -> Self::AccountId;
+trait IdentifyAccount {
+    type AccountId;
+}
+trait Verify {
+    type Signer;
+}
+pub struct RealSigner {}
+impl IdentifyAccount for RealSigner {
+    type AccountId = u32;
+}
+pub struct RealSignature {}
+impl Verify for RealSignature {
+    type Signer = RealSigner;
 }
 
-pub struct EcdsaSigner {}
+pub type RealAccountId = <<RealSignature as Verify>::Signer as IdentifyAccount>::AccountId;
 
-impl IdentifyAccount for EcdsaSigner {
-	type AccountId = AccountId32;
-	fn into_account(&self) -> Self::AccountId {
-		unimplemented!()
-	}
-}
+#[frame_support::pallet]
+pub mod pallet {
+    use super::*;
 
-pub trait Verify {
-	type Signer: IdentifyAccount;
-	fn verify(&self) -> Self::Signer {
-		unimplemented!()
-	}
-}
+    #[pallet::pallet]
+    #[pallet::without_storage_info]
+    pub struct Pallet<T>(_);
 
+    #[pallet::config]
+    pub trait Config: frame_system::Config<AccountId = RealAccountId> {
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+    }
 
-pub struct EcdsaSignature {}
+    #[pallet::genesis_config]
+    pub struct GenesisConfig<T: Config> {
+        /// The initial set of shelves.
+        pub shelves: Vec<<T as frame_system::Config>::AccountId>,
+    }
 
-impl Verify for EcdsaSignature {
-	type Signer = EcdsaSigner;
-}
+    #[cfg(feature = "std")]
+    impl<T: Config> Default for GenesisConfig<T> {
+        fn default() -> Self {
+            Self {
+                shelves: Default::default(),
+            }
+        }
+    }
 
-pub type Signature = EcdsaSignature;
+    #[pallet::genesis_build]
+    impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+        fn build(&self) {}
+    }
 
-
-// CRATE B
-
-pub type PrimitivesAccountId = 
-	<
-		<Signature as Verify>::Signer as IdentifyAccount
-	>::AccountId;
-
-
-// CRATE C
-pub mod frame_system {
-	pub trait Config {
-		type AccountId;
-	}
-}
-
-// CRATE D
-
-/// Removing the associated type specification, `= PrimitivesAccountId`
-/// solves the issues in the real codebase.
-pub trait Config: frame_system::Config<AccountId = PrimitivesAccountId> {
-	type Inner;
-}
-
-pub struct Genesis {}
-
-impl frame_system::Config for Genesis {
-	type AccountId = PrimitivesAccountId;
-}
-
-impl Config for Genesis {
-	type Inner = <Self as frame_system::Config>::AccountId;
+    #[pallet::event]
+    pub enum Event<T: Config> {
+        X,
+    }
 }
