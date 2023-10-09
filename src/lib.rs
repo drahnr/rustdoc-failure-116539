@@ -1,7 +1,7 @@
 // CRATE A
 
 
-pub struct Acc32;
+pub struct AccountId32;
 
 
 pub trait IdentifyAccount {
@@ -9,16 +9,14 @@ pub trait IdentifyAccount {
 	fn into_account(&self) -> Self::AccountId;
 }
 
-pub struct SignerY {}
+pub struct EcdsaSigner {}
 
-impl IdentifyAccount for SignerY {
-	type AccountId = Acc32;
+impl IdentifyAccount for EcdsaSigner {
+	type AccountId = AccountId32;
 	fn into_account(&self) -> Self::AccountId {
 		unimplemented!()
 	}
 }
-
-pub struct Whatever {}
 
 pub trait Verify {
 	type Signer: IdentifyAccount;
@@ -27,11 +25,14 @@ pub trait Verify {
 	}
 }
 
-impl Verify for Whatever {
-	type Signer = SignerY;
+
+pub struct EcdsaSignature {}
+
+impl Verify for EcdsaSignature {
+	type Signer = EcdsaSigner;
 }
 
-pub type Signature = Whatever;
+pub type Signature = EcdsaSignature;
 
 
 // CRATE B
