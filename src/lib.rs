@@ -1,7 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use frame_support::pallet_prelude::*;
-
 trait IdentifyAccount {
     type AccountId;
 }
@@ -16,44 +13,15 @@ pub struct RealSignature {}
 impl Verify for RealSignature {
     type Signer = RealSigner;
 }
-
 pub type RealAccountId = <<RealSignature as Verify>::Signer as IdentifyAccount>::AccountId;
 
-#[frame_support::pallet]
-pub mod pallet {
-    use super::*;
+pub struct Pallet<T>(std::marker::PhantomData<(T)>);
 
-    #[pallet::pallet]
-    #[pallet::without_storage_info]
-    pub struct Pallet<T>(_);
+pub trait Config: frame_system::Config<AccountId = RealAccountId> {
+	type RuntimeEvent: From<frame_system::Event<Self>>
+		+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
+}
 
-    #[pallet::config]
-    pub trait Config: frame_system::Config<AccountId = RealAccountId> {
-        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-    }
-
-    #[pallet::genesis_config]
-    pub struct GenesisConfig<T: Config> {
-        /// The initial set of shelves.
-        pub shelves: Vec<<T as frame_system::Config>::AccountId>,
-    }
-
-    #[cfg(feature = "std")]
-    impl<T: Config> Default for GenesisConfig<T> {
-        fn default() -> Self {
-            Self {
-                shelves: Default::default(),
-            }
-        }
-    }
-
-    #[pallet::genesis_build]
-    impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
-        fn build(&self) {}
-    }
-
-    #[pallet::event]
-    pub enum Event<T: Config> {
-        X,
-    }
+pub struct GenesisConfig<T: Config> {
+	pub shelves: Vec<<T as frame_system::Config>::AccountId>,
 }
