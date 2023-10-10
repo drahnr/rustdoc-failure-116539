@@ -1,7 +1,6 @@
 pub trait IdentifyAccount {
     type AccountId;
 }
-
 pub struct RealSigner {}
 
 impl IdentifyAccount for RealSigner {
@@ -10,14 +9,12 @@ impl IdentifyAccount for RealSigner {
 
 pub type RealAccountId = <RealSigner as IdentifyAccount>::AccountId;
 
-pub mod inner {
-    pub trait Config {
-        type AccountId;
-    }
+pub trait BaseConfig {
+    type AccountId;
 }
 
-pub trait Config: inner::Config<AccountId = RealAccountId> {}
+pub trait Config: BaseConfig<AccountId = RealAccountId> {}
 
 pub struct GenesisConfig<T: Config> {
-    pub shelves: Vec<<T as inner::Config>::AccountId>,
+    pub shelves: Vec<<T as BaseConfig>::AccountId>,
 }
